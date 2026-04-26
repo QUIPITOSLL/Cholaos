@@ -1,0 +1,337 @@
+!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cholao Valluno</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f0f7f0; min-height: 100vh; }
+  .app { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; padding-bottom: 20px; }
+
+  /* TOP BAR */
+  .topbar { background: #1a5c1a; padding: 14px 16px 10px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .topbar-left { display: flex; flex-direction: column; }
+  .topbar-sub { font-size: 11px; color: #a5d6a7; font-weight: 400; }
+  .topbar-title { font-size: 19px; font-weight: 700; color: #fff; }
+  .mesa-badge { background: #2e7d32; border: 1.5px solid #a5d6a7; color: #fff; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 20px; }
+
+  /* MESA SELECTOR */
+  .mesa-section { background: #e8f5e9; border-bottom: 1px solid #c8e6c9; padding: 10px 12px; }
+  .mesa-label { font-size: 12px; color: #2e7d32; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .mesa-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+  .mesa-btn { padding: 7px 14px; border-radius: 20px; border: 1.5px solid #2e7d32; background: #fff; color: #2e7d32; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .mesa-btn.active { background: #2e7d32; color: #fff; }
+  .mesa-btn.llevar { border-color: #c62828; color: #c62828; }
+  .mesa-btn.llevar.active { background: #c62828; color: #fff; border-color: #c62828; }
+
+  /* SECCIONES */
+  .section-header { background: #2e7d32; color: #fff; font-size: 12px; font-weight: 700; padding: 7px 14px; letter-spacing: 0.6px; text-transform: uppercase; }
+  .productos-list { padding: 8px 10px; display: flex; flex-direction: column; gap: 7px; }
+
+  /* PRODUCTO CARD */
+  .prod-card { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #e8f5e9; border-radius: 12px; padding: 10px 12px; gap: 10px; transition: border-color 0.15s; }
+  .prod-card.tiene { border-color: #66bb6a; background: #f1f8f1; }
+  .prod-info { flex: 1; min-width: 0; }
+  .prod-name { font-size: 14px; font-weight: 600; color: #1a1a1a; line-height: 1.3; }
+  .prod-desc { font-size: 11px; color: #777; margin-top: 2px; }
+  .prod-price { font-size: 14px; font-weight: 700; color: #2e7d32; white-space: nowrap; margin-bottom: 6px; text-align: right; }
+  .qty-ctrl { display: flex; align-items: center; }
+  .qty-btn { width: 32px; height: 32px; border: 1.5px solid #2e7d32; background: #fff; color: #2e7d32; font-size: 20px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .qty-btn:first-child { border-radius: 8px 0 0 8px; }
+  .qty-btn:last-child { border-radius: 0 8px 8px 0; }
+  .qty-btn:active { background: #e8f5e9; }
+  .qty-num { width: 32px; height: 32px; border-top: 1.5px solid #2e7d32; border-bottom: 1.5px solid #2e7d32; background: #f1f8f1; font-size: 15px; font-weight: 700; color: #2e7d32; display: flex; align-items: center; justify-content: center; }
+
+  /* RESUMEN */
+  .resumen-wrap { margin: 12px 10px 4px; border: 2px solid #2e7d32; border-radius: 14px; overflow: hidden; }
+  .resumen-head { background: #2e7d32; color: #fff; padding: 9px 14px; font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+  .resumen-body { padding: 10px 12px; background: #fff; }
+  .resumen-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
+  .resumen-row:last-child { border-bottom: none; }
+  .resumen-row-name { color: #333; flex: 1; }
+  .resumen-row-price { color: #333; font-weight: 500; white-space: nowrap; margin-left: 8px; }
+  .resumen-empty { font-size: 13px; color: #aaa; text-align: center; padding: 10px 0; }
+  .resumen-total { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 2px; border-top: 2px solid #c8e6c9; margin-top: 6px; font-size: 18px; font-weight: 800; color: #2e7d32; }
+
+  /* BOTONES ACCION */
+  .action-row { display: flex; gap: 10px; padding: 10px 10px 4px; }
+  .btn-cobrar { flex: 1; background: #2e7d32; color: #fff; border: none; border-radius: 12px; padding: 15px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .btn-cobrar:active { background: #1b5e20; }
+  .btn-cobrar:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-limpiar { background: #fff; color: #c62828; border: 1.5px solid #c62828; border-radius: 12px; padding: 15px 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .btn-limpiar:active { background: #ffebee; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1b5e20; color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #c62828; }
+
+  /* OVERLAY CARGANDO */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .overlay.show { opacity: 1; pointer-events: all; }
+  .overlay-box { background: #fff; border-radius: 16px; padding: 28px 32px; text-align: center; }
+  .overlay-box p { font-size: 15px; color: #333; margin-top: 10px; font-weight: 500; }
+  .spinner { width: 36px; height: 36px; border: 4px solid #e8f5e9; border-top-color: #2e7d32; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-sub">Autentico</span>
+      <span class="topbar-title">Cholao Valluno</span>
+    </div>
+    <div class="mesa-badge" id="badge-mesa">Sin mesa</div>
+  </div>
+
+  <!-- SELECTOR DE MESA -->
+  <div class="mesa-section">
+    <div class="mesa-label">Selecciona mesa o destino</div>
+    <div class="mesa-grid" id="mesas-grid"></div>
+  </div>
+
+  <!-- CHOLAOS -->
+  <div class="section-header">Cholaos</div>
+  <div class="productos-list" id="sec-cholaos"></div>
+
+  <!-- ESPECIALES -->
+  <div class="section-header">Especiales</div>
+  <div class="productos-list" id="sec-especiales"></div>
+
+  <!-- GRANIZADOS -->
+  <div class="section-header">Granizados y Raspao</div>
+  <div class="productos-list" id="sec-granizados"></div>
+
+  <!-- RESUMEN -->
+  <div class="resumen-wrap">
+    <div class="resumen-head">
+      <span id="resumen-titulo">Pedido — Sin mesa</span>
+      <span id="resumen-cant" style="font-size:12px;opacity:0.8"></span>
+    </div>
+    <div class="resumen-body">
+      <div id="resumen-items"><div class="resumen-empty">Agrega productos arriba</div></div>
+      <div class="resumen-total" id="resumen-total" style="display:none">
+        <span>Total</span>
+        <span id="total-val">$0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTONES -->
+  <div class="action-row">
+    <button class="btn-cobrar" id="btn-cobrar" onclick="registrarPedido()">Registrar pedido</button>
+    <button class="btn-limpiar" onclick="limpiarTodo()">Limpiar</button>
+  </div>
+
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <div class="spinner"></div>
+    <p>Enviando pedido...</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIGURACION — pon aqui tu URL de Google Apps Script
+// ============================================================
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbw2hbimgHiQ5xpzCgUhJvIJJQ_GGFmMT63FC5M2L9EE0GeBlo8Ct9CxDYI94x0h9JUv/exec";
+// ============================================================
+
+const MENU = {
+  "sec-cholaos": [
+    { id:"c1", name:"Cholao sin helado Pequeno 10 oz", price:8000, desc:"Raspao, lulo, banano, maracuya, pina, guanabana, leche condensada, mora, milo, galleta" },
+    { id:"c2", name:"Cholao sin helado Grande 14 oz",  price:10000, desc:"Raspao, lulo, banano, maracuya, pina, guanabana, leche condensada, mora, milo, galleta" },
+    { id:"c3", name:"Cholao con helado Pequeno 10 oz", price:9000,  desc:"Con helado: raspao, lulo, banano, maracuya, pina, guanabana, leche condensada, mora, milo, galleta" },
+    { id:"c4", name:"Cholao con helado Grande 14 oz",  price:11000, desc:"Con helado: raspao, lulo, banano, maracuya, pina, guanabana, leche condensada, mora, milo, galleta" },
+  ],
+  "sec-especiales": [
+    { id:"e1", name:"Malteada 14 oz",           price:13000, desc:"Malteada de oreo, crema chantili y galleta oreo" },
+    { id:"e2", name:"Maracuyada 12 oz",          price:13000, desc:"Hielo, pulpa de maracuya y leche condensada" },
+    { id:"e3", name:"Guanabanada 12 oz",         price:13000, desc:"Hielo, pulpa de guanabana, leche condensada y galleta" },
+    { id:"e4", name:"Lulada 12 oz",              price:13000, desc:"Hielo, pulpa de lulo y leche condensada" },
+    { id:"e5", name:"Mix Lulo-Maracuya 12 oz",   price:13000, desc:"Hielo, pulpa lulo, pulpa maracuya y leche condensada" },
+  ],
+  "sec-granizados": [
+    { id:"g1", name:"Granizado de Milo 14 oz",   price:11000, desc:"Hielo, leche y milo" },
+    { id:"g2", name:"Granizado de Cafe 14 oz",   price:11000, desc:"Hielo, cafe y leche" },
+    { id:"g3", name:"Raspao 9 oz",               price:5000,  desc:"Hielo, kola y leche condensada" },
+  ]
+};
+
+const TODOS = Object.values(MENU).flat();
+const qty = {};
+TODOS.forEach(p => qty[p.id] = 0);
+let mesaActual = "";
+
+// MESAS
+const MESAS = ["1","2","3","4","5","6","7","8","Para llevar"];
+const grid = document.getElementById("mesas-grid");
+MESAS.forEach(m => {
+  const b = document.createElement("button");
+  const esLlevar = m === "Para llevar";
+  b.className = "mesa-btn" + (esLlevar ? " llevar" : "");
+  b.textContent = esLlevar ? "Para llevar" : "Mesa " + m;
+  b.onclick = () => {
+    document.querySelectorAll(".mesa-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    mesaActual = esLlevar ? "Para llevar" : "Mesa " + m;
+    document.getElementById("badge-mesa").textContent = mesaActual;
+    document.getElementById("resumen-titulo").textContent = "Pedido — " + mesaActual;
+  };
+  grid.appendChild(b);
+});
+
+// RENDER PRODUCTOS
+function renderSeccion(items, seccionId) {
+  const el = document.getElementById(seccionId);
+  el.innerHTML = "";
+  items.forEach(p => {
+    const d = document.createElement("div");
+    d.className = "prod-card";
+    d.id = "card-" + p.id;
+    d.innerHTML = `
+      <div class="prod-info">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-desc">${p.desc}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="prod-price">${fmt(p.price)}</div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" ontouchstart="" onclick="cambiar('${p.id}',-1)">−</button>
+          <div class="qty-num" id="q-${p.id}">0</div>
+          <button class="qty-btn" ontouchstart="" onclick="cambiar('${p.id}',1)">+</button>
+        </div>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+Object.entries(MENU).forEach(([secId, items]) => renderSeccion(items, secId));
+
+function cambiar(id, delta) {
+  qty[id] = Math.max(0, qty[id] + delta);
+  document.getElementById("q-" + id).textContent = qty[id];
+  const card = document.getElementById("card-" + id);
+  if (qty[id] > 0) card.classList.add("tiene");
+  else card.classList.remove("tiene");
+  actualizarResumen();
+}
+
+function fmt(n) {
+  return "$" + Math.round(n).toLocaleString("es-CO");
+}
+
+function actualizarResumen() {
+  const items = TODOS.filter(p => qty[p.id] > 0);
+  const el = document.getElementById("resumen-items");
+  const totEl = document.getElementById("resumen-total");
+  const cantEl = document.getElementById("resumen-cant");
+
+  if (items.length === 0) {
+    el.innerHTML = '<div class="resumen-empty">Agrega productos arriba</div>';
+    totEl.style.display = "none";
+    cantEl.textContent = "";
+    return;
+  }
+
+  let total = 0;
+  el.innerHTML = items.map(p => {
+    const sub = p.price * qty[p.id];
+    total += sub;
+    return `<div class="resumen-row">
+      <span class="resumen-row-name">${qty[p.id]}x ${p.name}</span>
+      <span class="resumen-row-price">${fmt(sub)}</span>
+    </div>`;
+  }).join("");
+
+  document.getElementById("total-val").textContent = fmt(total);
+  totEl.style.display = "flex";
+  const totalItems = items.reduce((s, p) => s + qty[p.id], 0);
+  cantEl.textContent = totalItems + " producto" + (totalItems !== 1 ? "s" : "");
+}
+
+function limpiarTodo() {
+  TODOS.forEach(p => {
+    qty[p.id] = 0;
+    document.getElementById("q-" + p.id).textContent = "0";
+    document.getElementById("card-" + p.id).classList.remove("tiene");
+  });
+  actualizarResumen();
+}
+
+function toast(msg, tipo) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast show" + (tipo === "error" ? " error" : "");
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => el.classList.remove("show"), 3000);
+}
+
+async function registrarPedido() {
+  const items = TODOS.filter(p => qty[p.id] > 0);
+  if (!mesaActual) { toast("Selecciona una mesa primero", "error"); return; }
+  if (items.length === 0) { toast("Agrega al menos un producto", "error"); return; }
+
+  let total = 0;
+  const detalle = items.map(p => {
+    const sub = p.price * qty[p.id];
+    total += sub;
+    return qty[p.id] + "x " + p.name + " (" + fmt(sub) + ")";
+  }).join(" | ");
+
+  const ahora = new Date();
+  const hora = ahora.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+  const fecha = ahora.toLocaleDateString("es-CO");
+
+  const payload = {
+    fecha: fecha,
+    hora: hora,
+    mesa: mesaActual,
+    detalle: detalle,
+    total: total
+  };
+
+  document.getElementById("overlay").classList.add("show");
+  document.getElementById("btn-cobrar").disabled = true;
+
+  try {
+    if (SHEET_URL === "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT") {
+      await new Promise(r => setTimeout(r, 1200));
+      console.log("PEDIDO (modo prueba):", payload);
+      toast("Pedido registrado: " + mesaActual + " — " + fmt(total));
+    } else {
+      await fetch(SHEET_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      toast("Pedido enviado a Google Sheets: " + mesaActual + " — " + fmt(total));
+    }
+    limpiarTodo();
+    document.querySelectorAll(".mesa-btn").forEach(x => x.classList.remove("active"));
+    mesaActual = "";
+    document.getElementById("badge-mesa").textContent = "Sin mesa";
+    document.getElementById("resumen-titulo").textContent = "Pedido — Sin mesa";
+  } catch (e) {
+    toast("Error al enviar. Revisa la conexion.", "error");
+    console.error(e);
+  } finally {
+    document.getElementById("overlay").classList.remove("show");
+    document.getElementById("btn-cobrar").disabled = false;
+  }
+}
+</script>
+</body>
+</html>
