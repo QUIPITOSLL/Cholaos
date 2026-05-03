@@ -141,6 +141,7 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+
 <script type="module">
   import { db } from "./firebase.js";
   import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -148,7 +149,7 @@
 // CONFIGURACION — pon aqui tu URL de Google Apps Script
 // ============================================================
 // const SHEET_URL = "https://script.google.com/macros/s/AKfycbw2hbimgHiQ5xpzCgUhJvIJJQ_GGFmMT63FC5M2L9EE0GeBlo8Ct9CxDYI94x0h9JUv/exec";
-// ============================================================
+
 
 const MENU = {
   "sec-cholaos": [
@@ -308,6 +309,7 @@ async function registrarPedido() {
   document.getElementById("btn-cobrar").disabled = true;
 
   try {
+
     await addDoc(collection(db, "pedidos"), {
   fecha: fecha,
   hora: hora,
@@ -318,6 +320,22 @@ async function registrarPedido() {
 });
 
 toast("Pedido enviado: " + mesaActual + " — " + fmt(total));
+
+    if (SHEET_URL === "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT") {
+      await new Promise(r => setTimeout(r, 1200));
+      console.log("PEDIDO (modo prueba):", payload);
+      toast("Pedido registrado: " + mesaActual + " — " + fmt(total));
+    } else {
+      await fetch(SHEET_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      await addDoc(collection(db, "pedidos"), payload);
+      toast("Pedido enviado a Firebase: " + mesaActual + " — " + fmt(total));
+    }
+    
     limpiarTodo();
     document.querySelectorAll(".mesa-btn").forEach(x => x.classList.remove("active"));
     mesaActual = "";
